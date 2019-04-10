@@ -46,11 +46,11 @@ class Analysis(object):
         system,
         run_immediately=True,
         update=True,
-        resize_full=False,
-        refocus_full=True,
+        resize_full=False,  # Resize optical elements? (their diameter)
+        refocus_full=True,  # Focus the system? (i.e. adjust the image plane)
         trace_gaussian=False,
-        defocus=5,
-        print=True,
+        defocus=5,  # Number of spot diagrams around the focus position.
+        print=True,  # Print out information about the system
         print_gaussian=False,
         print_system=True,
         print_paraxial=True,

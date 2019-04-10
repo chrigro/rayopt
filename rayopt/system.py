@@ -16,8 +16,7 @@
 #   You should have received a copy of the GNU Lesser General Public License
 #   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from __future__ import (absolute_import, print_function,
-                        unicode_literals, division)
+from __future__ import absolute_import, print_function, unicode_literals, division
 
 import itertools
 
@@ -36,10 +35,20 @@ from .pupils import RadiusPupil
 
 @public
 class System(list):
-    def __init__(self, elements=None, description="", scale=1e-3,
-                 wavelengths=None, stop=1, fields=None,
-                 object=None, image=None,
-                 pickups=None, validators=None, solves=None):
+    def __init__(
+        self,
+        elements=None,     # List of Elements or list of dictionary defining the elements
+        description="",    # Description of the system
+        scale=1e-3,        # How do the dimensions relate to 1m
+        wavelengths=None,  # List of wavelength in nm
+        stop=1,            # Index of the element defining the aperture stop of the system. It is the radius of this elements that counts. see eg http://electron9.phys.utk.edu/optics421/modules/m3/Stops.htm
+        fields=None,       # Displacement in Y direction in the object plane from where the rays emerge
+        object=None,       # The object. If None, assume a InfiniteConjugate, i.e. an object at initity
+        image=None,        # The image. If None assume a FiniteConjugate
+        pickups=None,      # Pickup (get, set, ...) attributes of system
+        validators=None,   # Validate some attributes of the system
+        solves=None,       # TODO: Not really sure what this is doing
+    ):
         elements = [Element.make(_) for _ in elements or []]
         super(System, self).__init__(elements)
         self.description = description
@@ -50,19 +59,22 @@ class System(list):
             self.object = Conjugate.make(object)
         else:
             self.object = InfiniteConjugate(
-                angle=0., pupil=RadiusPupil(
-                    radius=1., update_distance=True, update_radius=True))
+                angle=0.0,
+                pupil=RadiusPupil(radius=1.0, update_distance=True, update_radius=True),
+            )
         if image:
             self.image = Conjugate.make(image)
         else:
             self.image = FiniteConjugate(
-                radius=0., update_radius=True, pupil=RadiusPupil(
-                    radius=1., update_distance=True, update_radius=True))
+                radius=0.0,
+                update_radius=True,
+                pupil=RadiusPupil(radius=1.0, update_distance=True, update_radius=True),
+            )
         if fields is None:
             if self.object.point:
-                fields = [0.]
+                fields = [0.0]
             else:
-                fields = [0., .7, 1.]
+                fields = [0.0, 0.7, 1.0]
         self.fields = fields
         self.pickups = pickups or []
         self.validators = validators or []
@@ -155,40 +167,53 @@ class System(list):
     def solve(self):
         for solve in self.solves:
             if "get" in solve:
+
                 def getter():
                     return self.get_path(solve["get"])
+
             elif "get_eval" in solve:
+
                 def getter():
                     loc = dict(self=self, solve=solve)
                     return eval(solve["get_eval"], loc, globals())
+
             elif "get_func" in solve:
+
                 def getter():
                     return solve["get_func"](self, solve)
+
             if "set" in solve:
+
                 def setter(x):
                     self.set_path(solve["set"], x)
+
             elif "set_exec" in solve:
+
                 def setter(value):
                     loc = dict(value=value, self=self, solve=solve)
                     exec(solve["set_exec"], globals(), loc)
+
             elif "set_func" in solve:
+
                 def setter(x):
                     solve["set_func"](self, solve, x)
-            target = solve.get("target", 0.)
+
+            target = solve.get("target", 0.0)
             if "init" in solve:
                 init = solve["init"]
             elif "set" in solve:
                 init = self.get_path(solve["set"])
             else:
-                init = 0.
+                init = 0.0
 
             def func(x):
                 setter(x)
                 self.pickup()
                 return getter() - target
 
-            x = newton(func, init, tol=solve.get("tol", 1e-8),
-                       maxiter=solve.get("maxiter", 20))
+            x = newton(
+                func, init, tol=solve.get("tol", 1e-8), maxiter=solve.get("maxiter", 20)
+            )
             func(x)
             if "init_current" in solve:
                 solve["init"] = float(x)
@@ -199,16 +224,18 @@ class System(list):
                 return element.refractive_index(wavelength)
             except AttributeError:
                 pass
-        return 1.
+        return 1.0
 
     def update(self):
         self._pupil_cache.clear()
         self.pickup()
         self.solve()
-        self.object.pupil.refractive_index = \
-            self.refractive_index(self.wavelengths[0], 0)
-        self.image.pupil.refractive_index = \
-            self.refractive_index(self.wavelengths[0], -1)
+        self.object.pupil.refractive_index = self.refractive_index(
+            self.wavelengths[0], 0
+        )
+        self.image.pupil.refractive_index = self.refractive_index(
+            self.wavelengths[0], -1
+        )
         self.paraxial.update_conjugates()
         self.paraxial.update()
         self.validate()
@@ -230,31 +257,28 @@ class System(list):
                     if fix and "get" in validator:
                         self.set_path(validator["get"], v)
                     else:
-                        raise ValueError("%s < %s (%s)" %
-                                         (value, v, validator))
+                        raise ValueError("%s < %s (%s)" % (value, v, validator))
             if "maximum" in validator:
                 v = validator["maximum"]
                 if value > v:
                     if fix and "get" in validator:
                         self.set_path(validator["get"], v)
                     else:
-                        raise ValueError("%s > %s (%s)" %
-                                         (value, v, validator))
+                        raise ValueError("%s > %s (%s)" % (value, v, validator))
             if "equality" in validator:
                 v = validator["equality"]
                 if value != v:
                     if fix and "get" in validator:
                         self.set_path(validator["get"], v)
                     else:
-                        raise ValueError("%s != %s (%s)" %
-                                         (value, v, validator))
+                        raise ValueError("%s != %s (%s)" % (value, v, validator))
 
     def reverse(self):
         # i-1|material_i-1,distance_i|i|material_i,distance_i+1|i+1
         # ->
         # i-1|material_i,distance_i-1|i|material_i+1,distance_i|i+1
         #
-        d = [e.distance for e in self] + [0.]
+        d = [e.distance for e in self] + [0.0]
         m = [None] + [getattr(e, "material", None) for e in self]
         for i, e in enumerate(self):
             e.reverse()
@@ -265,7 +289,7 @@ class System(list):
 
     def rescale(self, scale=None):
         if scale is None:
-            scale = self.scale/1e-3
+            scale = self.scale / 1e-3
         self.scale /= scale
         for e in self:
             e.rescale(scale)
@@ -277,15 +301,17 @@ class System(list):
 
     def text(self):
         return itertools.chain(
-            self.base_text(), ("",),
+            self.base_text(),
+            ("",),
             # self.paraxial.text(), ("",)
         )
 
     def base_text(self):
         yield "System: %s" % self.description
-        yield "Scale: %s mm" % (self.scale/1e-3)
-        yield "Wavelengths: %s nm" % ", ".join("%.0f" % (w/1e-9)
-                                               for w in self.wavelengths)
+        yield "Scale: %s mm" % (self.scale / 1e-3)
+        yield "Wavelengths: %s nm" % ", ".join(
+            "%.0f" % (w / 1e-9) for w in self.wavelengths
+        )
         yield "Fields: %s" % ", ".join("%g" % _ for _ in self.fields)
         yield "Object:"
         for line in self.object.text():
@@ -296,11 +322,19 @@ class System(list):
         yield "Stop: %i" % self.stop
         yield "Elements:"
         yield "%2s %1s %10s %10s %10s %17s %7s %7s %7s" % (
-                "#", "T", "Distance", "Rad Curv", "Diameter",
-                "Material", "n", "nd", "Vd")
+            "#",
+            "T",
+            "Distance",
+            "Rad Curv",
+            "Diameter",
+            "Material",
+            "n",
+            "nd",
+            "Vd",
+        )
         for i, e in enumerate(self):
             curv = getattr(e, "curvature", 0)
-            roc = curv == 0 and np.inf or 1./curv
+            roc = curv == 0 and np.inf or 1.0 / curv
             rad = e.radius
             mat = getattr(e, "material", "")
             nd = getattr(mat, "nd", np.nan)
@@ -309,18 +343,27 @@ class System(list):
             if mat:
                 n = self.refractive_index(self.wavelengths[0], i)
             yield "%2i %1s %10.5g %10.4g %10.5g %17s %7.3f %7.3f %7.2f" % (
-                    i, e.typeletter, e.distance, roc, rad*2, mat, n, nd, vd)
+                i,
+                e.typeletter,
+                e.distance,
+                roc,
+                rad * 2,
+                mat,
+                n,
+                nd,
+                vd,
+            )
 
     def edge_thickness(self, axis=1):
         """list of the edge thicknesses"""
         # FIXME: account for differing radius
         t = []
-        dz0 = 0.
+        dz0 = 0.0
         for el in self:
             try:
                 dz = el.edge_sag(axis)
             except AttributeError:
-                dz = 0.
+                dz = 0.0
             t.append(el.distance - dz + dz0)
             dz0 = dz
         return np.array(t)
@@ -376,8 +419,7 @@ class System(list):
                     cu = x[-1], pz[-1]
                 else:  # upper left
                     cu = px[-1], z[-1]
-                yield np.c_[(px, pz), cu, (x[::-1], z[::-1]), cl,
-                            (px[0], pz[0])]
+                yield np.c_[(px, pz), cu, (x[::-1], z[::-1]), cl, (px[0], pz[0])]
             elif not e.material.solid or e.material.mirror:
                 yield x, z
             if e.material.solid or (pending and e.material.mirror):
@@ -401,13 +443,13 @@ class System(list):
         ax.plot(o[:, 2], o[:, axis], ":", **kwargs)
 
     def paraxial_matrices(self, l, start=1, stop=None):
-        n = self.refractive_index(l, start-1)
+        n = self.refractive_index(l, start - 1)
         for e in self[start:stop]:
             n, m = e.paraxial_matrix(n, l)
             yield n, m
 
     def paraxial_matrix(self, l, start=1, stop=None):
-        n = 1.
+        n = 1.0
         m = np.eye(4)
         for n, mi in self.paraxial_matrices(l, start, stop):
             m = np.dot(mi, m)
@@ -433,16 +475,19 @@ class System(list):
     def align(self, n):
         n0 = n[0]
         for i, (el, n) in enumerate(zip(self[:-1], n[:-1])):
-            mu = n0/n
+            mu = n0 / n
             el.align(self[i + 1].direction, mu)
             n0 = n
-        self[-1].angles = 0, 0, 0.
+        self[-1].angles = 0, 0, 0.0
 
     @property
     def mirrored(self):
-        return np.cumprod([-1 if getattr(getattr(el, "material", None),
-                                         "mirror", False) else 1
-                           for el in self])
+        return np.cumprod(
+            [
+                -1 if getattr(getattr(el, "material", None), "mirror", False) else 1
+                for el in self
+            ]
+        )
 
     def propagate_paraxial(self, yu, n, l, start=1, stop=None):
         for e in self[start:stop]:
@@ -466,7 +511,7 @@ class System(list):
             yield y, u, n, i, t
             y, u = e.from_normal(y, u)
 
-    def solve_newton(self, merit, a=0., tol=1e-3, maxiter=30):
+    def solve_newton(self, merit, a=0.0, tol=1e-3, maxiter=30):
         def find_start(fun, a0):
             f0 = fun(a0)
             if not np.isnan(f0):
@@ -483,7 +528,7 @@ class System(list):
             a = newton(merit, a, tol=tol, maxiter=maxiter)
         return a
 
-    def solve_brentq(self, merit, a=0., b=1., tol=1e-3, maxiter=30):
+    def solve_brentq(self, merit, a=0.0, b=1.0, tol=1e-3, maxiter=30):
         for i in range(maxiter):
             fb = merit(b)
             if abs(fb) <= tol:
@@ -521,12 +566,13 @@ class System(list):
 
         @clru_cache(maxsize=1024)
         def dist(a):
-            y, u = self.aim(yo, None, z + a*p, filter=False)
+            y, u = self.aim(yo, None, z + a * p, filter=False)
             for yunit in self.propagate(y, u, n, l, stop=stop + 1):
                 y = yunit[0]
-            return (yo*y[0, :2]).sum()/rad
+            return (yo * y[0, :2]).sum() / rad
+
         a = self.solve_newton(dist, **kwargs)
-        return z + a*p
+        return z + a * p
 
     def aim_marginal(self, yo, yp, z, p, l=None, stop=None, **kwargs):
         assert p
@@ -544,18 +590,19 @@ class System(list):
 
         @clru_cache(maxsize=1024)
         def dist(a):
-            y, u = self.aim(yo, yp, z, a*p, filter=False)
+            y, u = self.aim(yo, yp, z, a * p, filter=False)
             ys = [y]
             for yunit in self.propagate(y, u, n, l, stop=stop):
                 ys.append(yunit[0])
-            d = np.square(ys)[1:, 0, :2].sum(1)/r2 - 1
+            d = np.square(ys)[1:, 0, :2].sum(1) / r2 - 1
             if rim:
                 return d.max()
             else:
                 return d[-1]
+
         a = self.solve_brentq(dist, **kwargs)
         assert a
-        return a*p
+        return a * p
 
     def _aim_pupil(self, xo, yo, guess, **kwargs):
         y = np.array((xo, yo))
@@ -566,17 +613,17 @@ class System(list):
             else:
                 z = self.object.pupil.distance
             a = self.object.pupil.radius
-            a = a*np.ones((2, 2))
+            a = a * np.ones((2, 2))
         else:
             z, a = guess[0], guess[1:].reshape(2, 2)
         if not np.allclose(y, 0):
             z1 = self.aim_chief(y, z, np.fabs(a).max(), **kwargs)
             if self.object.finite:
-                a *= np.fabs(z1/z)  # improve guess
+                a *= np.fabs(z1 / z)  # improve guess
             z = z1
         for ax, sig in (1, 1), (1, 0), (0, 1), (0, 0):
             yp = [0, 0]
-            yp[ax] = 2*sig - 1.
+            yp[ax] = 2 * sig - 1.0
             a1 = self.aim_marginal(y, yp, z, a[sig, ax], **kwargs)
             a[sig, ax] = a1
             if sig == 1:  # and guess is None
@@ -590,7 +637,8 @@ class System(list):
         try:
             c = self._pupil_cache[k]
         except KeyError:
-            c = self._pupil_cache[k] = PolarCacheND(self._aim_pupil,
-                                                    l=l, stop=stop, **kwargs)
+            c = self._pupil_cache[k] = PolarCacheND(
+                self._aim_pupil, l=l, stop=stop, **kwargs
+            )
         q = c(*yo)
         return q[0], q[1:].reshape(2, 2)
