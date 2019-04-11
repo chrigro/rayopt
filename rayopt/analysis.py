@@ -148,6 +148,7 @@ class Analysis(object):
 
         if self.plot_longitudinal:
             fig, ax = plt.subplots(1, 5, figsize=(self.figwidth, self.figwidth / 5))
+            fig.suptitle("Longitudinal abberations vs field. Units: {:1.0e} m".format(self.system.scale))
             self.figures.append(fig)
             self.longitudinal(ax, max(self.system.fields))
 
@@ -176,6 +177,8 @@ class Analysis(object):
             # , sharex=True, sharey=True)
             self.figures.append(fig)
             self.opds(ax[::-1], self.system.fields)
+
+        plt.tight_layout()
 
         return self.text, self.figures
 
@@ -249,9 +252,9 @@ class Analysis(object):
             )
             ax.append((axm, axsm, axss))
             for axi, xl, yl in [
-                (axm, "PY", "EY"),
-                (axsm, "PX", "EY"),
-                (axss, "PX", "EX"),
+                (axm, "InPupilY", "DistY"),
+                (axsm, "InPupilX", "DistY"),
+                (axss, "InPupilX", "DistX"),
             ]:
                 cls.setup_axes(axi, xl, yl)
         return ax[::-1]
@@ -272,6 +275,7 @@ class Analysis(object):
         nrays_line=152,
         colors="grbcmyk",
     ):
+        fig.suptitle("Transverse abberations vs field. Units: {:1.0e} m".format(self.system.scale))
         if wavelengths is None:
             wavelengths = self.system.wavelengths
         ax = self.pre_setup_fanplot(fig, len(heights))
@@ -281,7 +285,7 @@ class Analysis(object):
             axm.text(
                 -0.1,
                 0.5,
-                "OY=%s" % hi,
+                "OutY=%s" % hi,
                 rotation="vertical",
                 transform=axm.transAxes,
                 verticalalignment="center",
@@ -323,7 +327,7 @@ class Analysis(object):
             axi.text(
                 -0.1,
                 0.5,
-                "OY=%s" % hi,
+                "OutY=%s" % hi,
                 rotation="vertical",
                 transform=axi.transAxes,
                 verticalalignment="center",
@@ -332,7 +336,7 @@ class Analysis(object):
             axi.text(
                 0.5,
                 -0.1,
-                "DZ=%.1g" % zi,
+                "DistZ=%.1g" % zi,
                 transform=axi.transAxes,
                 horizontalalignment="center",
             )
@@ -380,7 +384,7 @@ class Analysis(object):
             axi.text(
                 -0.1,
                 0.5,
-                "OY=%s" % hi,
+                "OutY=%s" % hi,
                 rotation="vertical",
                 transform=axi.transAxes,
                 verticalalignment="center",
@@ -476,8 +480,8 @@ class Analysis(object):
         for axi, xl, yl, tl in [
             (axd, "EY", "REY", "DIST"),
             (axc, "EY", "DEY", "TCOLOR"),
-            (axf, "EY", "DEZ", "ASTIG"),
-            (axs, "PY", "DEZ", "SPHA"),
+            (axf, "EY", "DEZ", "Astigmatism (-tangential, -- sagittal)"),
+            (axs, "InPupilY", "DistZ", "Spherical Ab."),
             (axa, "L", "DEZ", "LCOLOR"),
         ]:
             self.setup_axes(axi, xl, yl, tl, yzero=False, xzero=False)
