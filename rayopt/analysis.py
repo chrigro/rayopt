@@ -480,8 +480,8 @@ class Analysis(object):
         for axi, xl, yl, tl in [
             (axd, "EY", "REY", "DIST"),
             (axc, "EY", "DEY", "TCOLOR"),
-            (axf, "EY", "DEZ", "Astigmatism (-tangential, -- sagittal)"),
-            (axs, "InPupilY", "DistZ", "Spherical Ab."),
+            (axf, "EY", "DEZ", "Astig (-tan, -- sag)"),
+            (axs, "InPupilY", "DistZ", "Spherical"),
             (axa, "L", "DEZ", "LCOLOR"),
         ]:
             self.setup_axes(axi, xl, yl, tl, yzero=False, xzero=False)
