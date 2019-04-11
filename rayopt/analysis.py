@@ -389,8 +389,8 @@ class Analysis(object):
             # TODO: link axes
             self.pre_setup_xyplot(axo)
             self.pre_setup_xyplot(axp)
-            self.setup_axes(axe, "R", "E")
-            self.setup_axes(axm, "F", "C")
+            self.setup_axes(axe, "Radius ({:1.0e} m)".format(self.system.scale), "Rel. energy", "Integrated Energy")
+            self.setup_axes(axm, "Frequency (1/{:1.0e} m)".format(self.system.scale), "Rel. contrast", "MTF")
             t = GeometricTrace(self.system)
             t.rays_point(
                 (0, hi), wavelength, nrays=nrays, distribution="hexapolar", clip=True
@@ -403,12 +403,22 @@ class Analysis(object):
             if mm is None:
                 mm = np.fabs(og).max()
                 v = np.linspace(-mm, mm, 21)
-            axo.contour(x, y, o, v, cmap=plt.cm.RdBu_r)
+            axo.set_title("OPD")
+            cax = axo.contour(x, y, o, v, cmap=plt.cm.RdBu_r)
+
             axo.text(
                 0.5,
                 -0.1,
-                "PTP: %.3g" % og.ptp(),
+                "Peak 2 Peak: %.3g (wl)" % og.ptp(),
                 transform=axo.transAxes,
+                horizontalalignment="center",
+            )
+            axp.set_title("PSF")
+            axp.text(
+                0.5,
+                -0.1,
+                "PSF(gray), log(PSF)(red), Airy(green)",
+                transform=axp.transAxes,
                 horizontalalignment="center",
             )
             r = paraxial.airy_radius[1] / paraxial.wavelength * wavelength
