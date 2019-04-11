@@ -163,6 +163,7 @@ class Analysis(object):
             )
             self.figures.append(fig)
             self.spots(ax[::-1], self.system.fields)
+            fig.suptitle("Spot diagram vs focus and field + airy circle (green). Units: {:1.0e} m".format(self.system.scale))
 
         if self.plot_opds:
             figheight = self.figwidth * len(self.system.fields) / 4
