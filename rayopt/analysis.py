@@ -46,20 +46,20 @@ class Analysis(object):
         system,
         run_immediately=True,
         update=True,
-        resize_full=False,  # Resize optical elements? (their diameter)
-        refocus_full=True,  # Focus the system? (i.e. adjust the image plane)
+        resize_full=False,     # Resize optical elements? (their diameter)
+        refocus_full=True,     # Focus the system? (i.e. adjust the image plane)
         trace_gaussian=False,
-        defocus=5,  # Number of spot diagrams around the focus position.
-        print=True,  # Print out information about the system
+        defocus=5,             # Number of spot diagrams around the focus position.
+        print=True,            # Print out information about the system
         print_gaussian=False,
         print_system=True,
         print_paraxial=True,
         print_full=False,
         figwidth=12.0,
-        plot_paraxial=False,
-        plot_gaussian=False,
+        plot_paraxial=False,   # Show a 2d representation of the system with paraxially traced rays added.
+        plot_gaussian=False,   # Show a 2d representation of the system with gaussian trace added.
         plot_full=False,
-        plot_rays=3,
+        plot_rays=3,           # TODO: No effect
         plot_transverse=True,
         plot_spots=True,
         plot_opds=True,

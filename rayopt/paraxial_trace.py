@@ -252,7 +252,7 @@ class ParaxialTrace(Trace):
 
     def plot(self, ax, principals=False, pupils=False, focals=False,
              nodals=False, **kwargs):
-        kwargs.setdefault("color", "black")
+        kwargs.setdefault("color", "blue")
         # this assumes that the outgoing oa of an element
         # coincides with the incoming of the next, use align()
         y = self.y[:, :, None] * np.ones(3)
@@ -285,7 +285,7 @@ class ParaxialTrace(Trace):
                 ax.plot(y[:, :, 2], y[:, :, self.axis], **kwargs)
 
     def plot_yybar(self, ax, **kwargs):
-        kwargs.setdefault("color", "black")
+        kwargs.setdefault("color", "blue")
         ax.plot(self.y[:, 0], self.y[:, 1], **kwargs)
 
     # TODO

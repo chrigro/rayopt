@@ -5,3 +5,5 @@
 /rayopt/simplex_accel.c
 /.coverage.*
 /.coverage
+tags
+__pycache__
