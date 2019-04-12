@@ -446,6 +446,8 @@ class Analysis(object):
                 (psf.shape[0] / 2 + x0 / dx, psf.shape[1] / 2 + y0 / dx),
                 "azimuthal",
             )
+            psf_peak = np.max(psf.ravel())
+            print("PSF maximum value: {:2.4f}".format(psf_peak))
             ee = np.cumsum(ee)
             if rm is None:
                 rm = np.searchsorted(ee, 0.9) * 1.5 * dx
