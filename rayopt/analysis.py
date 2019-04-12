@@ -480,7 +480,7 @@ class Analysis(object):
         for axi, xl, yl, tl in [
             (axd, "EY", "REY", "DIST"),
             (axc, "EY", "DEY", "TCOLOR"),
-            (axf, "EY", "DEZ", "ASTIG (-tan, -- sag)"),
+            (axf, "EY", "DEZ", "ASTIG (-mer, -- sag)"),
             (axs, "PY", "DEZ", "SPHA"),
             (axa, "L", "DEZ", "LCOLOR"),
         ]:
