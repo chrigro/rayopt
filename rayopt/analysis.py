@@ -252,9 +252,9 @@ class Analysis(object):
             )
             ax.append((axm, axsm, axss))
             for axi, xl, yl in [
-                (axm, "InPupilY", "DistY"),
-                (axsm, "InPupilX", "DistY"),
-                (axss, "InPupilX", "DistX"),
+                (axm, "PY", "EY"),
+                (axsm, "PX", "EY"),
+                (axss, "PX", "EX"),
             ]:
                 cls.setup_axes(axi, xl, yl)
         return ax[::-1]
@@ -285,7 +285,7 @@ class Analysis(object):
             axm.text(
                 -0.1,
                 0.5,
-                "OutY=%s" % hi,
+                "OY=%s" % hi,
                 rotation="vertical",
                 transform=axm.transAxes,
                 verticalalignment="center",
@@ -327,7 +327,7 @@ class Analysis(object):
             axi.text(
                 -0.1,
                 0.5,
-                "OutY=%s" % hi,
+                "OY=%s" % hi,
                 rotation="vertical",
                 transform=axi.transAxes,
                 verticalalignment="center",
@@ -336,7 +336,7 @@ class Analysis(object):
             axi.text(
                 0.5,
                 -0.1,
-                "DistZ=%.1g" % zi,
+                "DZ=%.1g" % zi,
                 transform=axi.transAxes,
                 horizontalalignment="center",
             )
@@ -384,7 +384,7 @@ class Analysis(object):
             axi.text(
                 -0.1,
                 0.5,
-                "OutY=%s" % hi,
+                "OY=%s" % hi,
                 rotation="vertical",
                 transform=axi.transAxes,
                 verticalalignment="center",
@@ -480,8 +480,8 @@ class Analysis(object):
         for axi, xl, yl, tl in [
             (axd, "EY", "REY", "DIST"),
             (axc, "EY", "DEY", "TCOLOR"),
-            (axf, "EY", "DEZ", "Astig (-tan, -- sag)"),
-            (axs, "InPupilY", "DistZ", "Spherical"),
+            (axf, "EY", "DEZ", "ASTIG (-tan, -- sag)"),
+            (axs, "PY", "DEZ", "SPHA"),
             (axa, "L", "DEZ", "LCOLOR"),
         ]:
             self.setup_axes(axi, xl, yl, tl, yzero=False, xzero=False)
